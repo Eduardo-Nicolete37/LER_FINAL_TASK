@@ -94,6 +94,3 @@ O gatilho para o pop-up de alerta estipulado no [RF-04] deve seguir rigorosament
 - Vermelho: 0 Minutos (Alerta imediato se não for atendido)
 - Amarelo: 30 minutos
 - Verde: 120 minutos
-
-##### Em atendimento: 
-Qualquer paciente (independente da cor) que ultrapassar 60 minutos dentro do consultório.
