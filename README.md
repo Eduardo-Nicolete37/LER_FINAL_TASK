@@ -1,216 +1,214 @@
+# Especificação de Requisitos — HealthManager
+> Sistema de triagem hospitalar baseado no Protocolo de Manchester
 
-# Especificação de Requisitos de Software — HealthManager
-> Sistema de Triagem Hospitalar baseado no Protocolo de Manchester
+---
+
+## 0. Histórico de Versões
+
+| Versão | Data | Descrição | Autor |
+|---|---|---|---|
+| 1.0 | 29/05/2025 | Versão inicial | Eduardo e Letícia |
+| 1.1 | 03/06/2025 | Adicionado RF-05, detalhamento das regras de negócio e tempos de alerta | Eduardo e Letícia |
+
+---
 
 ## 1. Introdução
 
-### 1.1 Propósito
+### 1.1 O que é esse documento
 
-Este documento especifica os requisitos funcionais, não funcionais e as regras de negócio para o sistema **HealthManager**, um software de triagem hospitalar baseado no Protocolo de Manchester para otimização do fluxo de atendimento.
+Esse documento descreve tudo que o sistema **HealthManager** precisa ter e fazer. Ele foi feito para organizar as ideias antes de começar a programar, deixando claro o que é prioridade e o que cada parte do sistema deve fazer.
 
-### 1.2 Escopo do Sistema
+### 1.2 O que o sistema faz
 
-O sistema controlará a recepção e a triagem, permitindo:
+O HealthManager é um sistema de triagem hospitalar. Em vez de atender as pessoas por ordem de chegada, ele organiza a fila por gravidade, usando as cores do Protocolo de Manchester. O sistema consegue:
 
-- Classificação de risco por cores (Vermelho, Amarelo, Verde)
-- Ordenação automatizada da fila por gravidade e idade
-- Controle de tempo de atendimento através de alertas visuais
-- Atualização e edição de registros de pacientes já triados
-- Exportação diária dos dados em arquivo `.txt` na pasta `registros/`
+- Classificar pacientes por cor de risco (Vermelho, Amarelo ou Verde)
+- Organizar a fila automaticamente por gravidade e idade
+- Emitir alertas quando um paciente espera tempo demais
+- Editar os dados de um paciente que já foi cadastrado
+- Exportar um relatório do dia em arquivo de texto
 
 ---
 
-## 2. Descrição Geral
+## 2. Sobre o sistema
 
-### 2.1 Funções do Produto
+### 2.1 Funções principais
 
-O HealthManager atuará na recepção do hospital, sendo operado por enfermeiras na triagem e visualizado por médicos e gestores. O sistema substitui o controle manual ou por ordem de chegada simples por um algoritmo de priorização dinâmica.
+O sistema vai ser usado na recepção do hospital. As enfermeiras fazem a triagem, os médicos chamam os pacientes e os gestores acompanham os atendimentos. A ideia é substituir o controle manual (ou por ordem de chegada) por um sistema que prioriza quem está mais em risco.
 
-### 2.2 Características dos Usuários
+### 2.2 Quem vai usar
 
-| Perfil | Descrição |
+| Perfil | Como usa o sistema |
 |---|---|
-| **Enfermeira da Triagem** | Usuário operacional; necessita de interface rápida e de poucos cliques. |
-| **Médico / Profissional de Saúde** | Usuário final da fila; focado na chamada do próximo paciente. |
-| **Gestor / Administrador** | Usuário que monitora gargalos e exporta relatórios. |
+| **Enfermeira da Triagem** | Cadastra os pacientes e preenche os dados da triagem |
+| **Médico / Profissional de Saúde** | Chama o próximo paciente da fila |
+| **Gestor / Administrador** | Acompanha a fila e exporta o relatório do dia |
 
 ---
 
-## 3. Requisitos de Sistema
+## 3. Requisitos
 
-As necessidades dos stakeholders são mapeadas no formato de histórias de usuário, acompanhadas de seus critérios de aceitação e identificadores únicos.
+Os requisitos foram escritos no formato de **histórias de usuário**, que é uma forma de descrever o que cada tipo de usuário precisa do sistema e por quê.
 
-### 3.1 Requisitos Funcionais (RF)
+### 3.1 O que o sistema precisa fazer (Requisitos Funcionais)
 
 ---
 
-#### [RF-01] Cadastro de Paciente e Triagem
+#### [RF-01] Cadastrar paciente
 
-> **User Story:** Como *Enfermeira da Triagem*, eu quero cadastrar o paciente com nome, idade, cor do Protocolo de Manchester e horário automático de chegada, para identificar o nível de risco de cada paciente logo na recepção.
+> **História:** Como *enfermeira da triagem*, quero cadastrar o paciente com nome, idade, cor de risco e horário de chegada, para registrar as informações dele logo na entrada.
 
-**Critérios de Aceitação:**
+**O sistema deve:**
 
-- O sistema deve registrar o carimbo de data/hora (`timestamp`) no momento exato do salvamento.
-- As cores permitidas devem ser estritamente: **Vermelho**, **Amarelo** ou **Verde** (mapeadas nos valores 3, 2 e 1, respectivamente).
-- A idade deve ser validada como número inteiro positivo; valores negativos ou não numéricos devem ser rejeitados com mensagem de erro.
-- O campo `status` do paciente deve ser iniciado como `"Em Espera"` e o campo `alerta_disparado` como `False`.
-- Prioridade inválida (fora das opções 1, 2 ou 3) deve ser rejeitada, não adicionando o paciente à fila.
+- Salvar automaticamente o horário exato em que o cadastro foi feito
+- Aceitar só as cores **Vermelho**, **Amarelo** ou **Verde**
+- Validar a idade (só números positivos; se digitar errado, pede de novo)
+- Começar o status do paciente como "Em Espera"
+- Não cadastrar o paciente se a cor de risco for inválida
 
 **Prioridade:** `Alta`
 
 ---
 
-#### [RF-02] Exibição da Fila Atualizada
+#### [RF-02] Mostrar a fila de espera
 
-> **User Story:** Como *Equipe Hospitalar*, eu quero visualizar a fila de espera atualizada em tempo real a cada nova triagem, para saber exatamente quem é o próximo a ser chamado conforme as regras de prioridade.
+> **História:** Como *equipe hospitalar*, quero ver a fila atualizada com os pacientes em ordem de prioridade, para saber quem deve ser chamado primeiro.
 
-**Critérios de Aceitação:**
+**O sistema deve:**
 
-- A lista de atendimento deve ser exibida já ordenada conforme as regras de negócio [RN-01] e [RN-02].
-- A exibição deve mostrar nome, idade, prioridade e horário de chegada de cada paciente.
-- Se a fila estiver vazia, o sistema deve exibir a mensagem `"Nenhuma pessoa na fila atualmente!"` e aguardar confirmação do usuário.
-
-**Prioridade:** `Alta`
-
----
-
-#### [RF-03] Chamar Próximo Paciente
-
-> **User Story:** Como *Profissional de Saúde*, eu quero acionar um comando para chamar o próximo paciente da fila, para iniciar o atendimento dele, registrá-lo no sistema e removê-lo da espera.
-
-**Critérios de Aceitação:**
-
-- O sistema deve registrar o horário de início do atendimento (`horario_atendimento`) e o timestamp correspondente (`timestamp_atendimento`).
-- O paciente chamado deve sair do status `"Em Espera"` e ser movido para a lista `em_atendimento`.
-- O próximo paciente deve ser determinado pela chave de ordenação conforme [RN-01] e [RN-02]: peso da prioridade → idoso → ordem de chegada.
-- Se a fila estiver vazia, o sistema deve exibir mensagem informativa e aguardar confirmação.
+- Mostrar a fila já ordenada seguindo as regras de prioridade
+- Exibir nome, idade, cor e horário de chegada de cada paciente
+- Se não tiver ninguém na fila, mostrar uma mensagem avisando
 
 **Prioridade:** `Alta`
 
 ---
 
-#### [RF-04] Alerta de Tempo Limite (Pop-Up)
+#### [RF-03] Chamar o próximo paciente
 
-> **User Story:** Como *Gestor do Hospital*, eu quero receber um alerta em formato de pop-up quando um paciente ultrapassar o tempo máximo permitido de espera, para tomar providências rápidas e evitar riscos à saúde.
+> **História:** Como *profissional de saúde*, quero chamar o próximo da fila, para começar o atendimento e registrar o horário no sistema.
 
-**Critérios de Aceitação:**
+**O sistema deve:**
 
-- O alerta deve ser verificado automaticamente a cada carregamento do menu principal (via `checar_alertas()`).
-- O alerta deve interromper a tela atual exibindo nome, prioridade e tempo de espera já decorrido (em minutos, com uma casa decimal).
-- O alerta só é disparado **uma vez por paciente**; após ser exibido, o campo `alerta_disparado` é marcado como `True`, impedindo repetições.
-- O alerta deve aguardar confirmação do usuário (qualquer tecla) antes de retornar ao menu.
+- Registrar o horário em que o atendimento começou
+- Tirar o paciente da fila e mover ele para "Em Atendimento"
+- Escolher o próximo paciente seguindo as regras de prioridade (cor, idoso, chegada)
+- Se a fila estiver vazia, mostrar uma mensagem avisando
+
+**Prioridade:** `Alta`
+
+---
+
+#### [RF-04] Alertar quando o tempo de espera estourar
+
+> **História:** Como *gestor do hospital*, quero receber um alerta quando um paciente esperar mais do que o permitido, para conseguir agir rápido e evitar riscos.
+
+**O sistema deve:**
+
+- Verificar os tempos toda vez que voltar para o menu principal
+- Mostrar um aviso em tela cheia com o nome, cor e tempo de espera do paciente
+- Disparar o alerta só uma vez por paciente (não fica repetindo)
+- Esperar o usuário apertar uma tecla para fechar o aviso
 
 **Prioridade:** `Média`
 
 ---
 
-#### [RF-05] Atualização de Registro
+#### [RF-05] Editar cadastro de paciente
 
-> **User Story:** Como *Enfermeira da Triagem*, eu quero editar os dados de um paciente já cadastrado na fila (nome, idade ou prioridade), para corrigir informações inseridas de forma incorreta durante a triagem.
+> **História:** Como *enfermeira da triagem*, quero poder editar os dados de um paciente que já está na fila, para corrigir alguma informação errada.
 
-**Critérios de Aceitação:**
+**O sistema deve:**
 
-- A busca do paciente deve ser feita pelo nome, sem distinção de maiúsculas/minúsculas.
-- Os campos editáveis são: **Nome**, **Idade** e **Prioridade**.
-- Ao atualizar a prioridade de um paciente, o campo `alerta_disparado` deve ser resetado para `False`, reiniciando a contagem de alerta com base na nova cor.
-- Se o paciente não for encontrado, o sistema deve exibir mensagem de erro e retornar ao menu.
-- A validação dos dados segue as mesmas regras do [RF-01] (idade positiva, prioridade válida).
+- Buscar o paciente pelo nome (sem diferenciar maiúscula de minúscula)
+- Permitir editar: nome, idade ou cor de risco
+- Se a cor for alterada, resetar o alerta para contar o tempo do zero com a nova cor
+- Se o paciente não for encontrado, mostrar mensagem de erro
+- Validar os dados da mesma forma que no cadastro
 
 **Prioridade:** `Média`
 
 ---
 
-#### [RF-06] Exportação de Histórico Diário
+#### [RF-06] Exportar relatório do dia
 
-> **User Story:** Como *Administrador do Sistema*, eu quero exportar os dados de atendimento do dia em um arquivo TXT ao fechar o turno, para manter um backup físico e auditar os tempos de espera do hospital.
+> **História:** Como *administrador*, quero exportar os dados de atendimento do dia em um arquivo de texto ao fechar o turno, para ter um backup e poder conferir os tempos depois.
 
-**Critérios de Aceitação:**
+**O sistema deve:**
 
-- O arquivo deve ser salvo automaticamente na pasta `registros/` com nome no formato `historico_AAAA-MM-DD_HH-MM-SS.txt`.
-- O arquivo deve conter, para cada paciente: Nome, Cor de triagem, Horário de chegada, Horário de atendimento e Tempo total de espera (em minutos e segundos).
-- Pacientes não atendidos devem ter os campos de atendimento registrados como `"Não atendido"` e `"N/A"`.
-- O arquivo deve incluir um cabeçalho com a data e hora de geração.
-- Após a exportação, o sistema deve encerrar o programa.
+- Salvar o arquivo na pasta `registros/` com o nome no formato `historico_AAAA-MM-DD_HH-MM-SS.txt`
+- Incluir para cada paciente: nome, cor de triagem, horário de chegada, horário de atendimento e tempo de espera
+- Para pacientes que não foram atendidos, registrar como "Não atendido" e "N/A"
+- Colocar no topo do arquivo a data e hora em que foi gerado
+- Encerrar o programa depois de salvar
 
 **Prioridade:** `Baixa`
 
 ---
 
-### 3.2 Requisitos Não Funcionais (RNF)
+### 3.2 Como o sistema precisa se comportar (Requisitos Não Funcionais)
 
 ---
 
-#### [RNF-01] Desempenho e Fluidez
+#### [RNF-01] Velocidade
 
-> **User Story:** Como *Enfermeira da Triagem*, eu quero que o sistema processe as triagens e atualize a fila em menos de 1 segundo, para que o sistema não trave e a recepção não fique congestionada.
+> **História:** Como *enfermeira da triagem*, quero que o sistema seja rápido, para não travar na hora do cadastro e não atrasar a fila.
 
-**Métrica / Critério:**
-
-- Tempo de resposta das requisições de ordenação da fila **≤ 1,0 segundo** sob carga normal de uso.
+**Critério:** A fila deve ser atualizada em no máximo **1 segundo**.
 
 **Prioridade:** `Alta`
 
 ---
 
-#### [RNF-02] Usabilidade e Menu Intuitivo
+#### [RNF-02] Facilidade de uso
 
-> **User Story:** Como *Usuário do Sistema*, eu quero um menu simples, intuitivo e com cores de prioridade bem destacadas, para operar o software sem necessidade de treinamentos complexos.
+> **História:** Como *usuário do sistema*, quero um menu simples e direto, para conseguir usar sem precisar de treinamento.
 
-**Métrica / Critério:**
+**Critérios:**
 
-- Fluxo de triagem completo em no máximo **3 entradas** a partir da tela inicial.
-- O menu principal deve apresentar todas as opções numeradas e acessíveis por entrada direta.
-- Interface em modo texto (terminal) com bordas em ASCII art para melhor legibilidade.
-- Cores acessíveis com alto contraste para visualização em monitores simples.
+- Fazer uma triagem completa em no máximo **3 passos** a partir do menu
+- Todas as opções numeradas e acessíveis direto pelo teclado
+- Interface no terminal com bordas em ASCII para ficar mais fácil de ler
+- Letras e contrastes que deem para enxergar bem em monitores simples
 
 **Prioridade:** `Média`
 
 ---
 
-## 4. Regras de Negócio (RN)
+## 4. Regras de Negócio
 
-Conforme a norma IEEE 29148, as regras de negócio guiam a lógica do código que processa os requisitos funcionais descritos na seção 3.
+As regras de negócio definem a lógica por trás do sistema, ou seja, como ele deve tomar decisões.
 
 ---
 
-### [RN-01] Ordenação por Gravidade (Protocolo de Manchester)
+### [RN-01] Ordem de atendimento por cor de risco
 
-A ordenação primária da fila deve ser baseada estritamente no grau de risco determinado pelas cores:
+A fila é sempre organizada pela gravidade do paciente, nessa ordem:
 
-| Cor | Nível | Peso |
+| Cor | Situação | Prioridade |
 |---|---|---|
-| 🔴 Vermelho | Emergência | 3 (maior) |
-| 🟡 Amarelo | Urgente | 2 |
-| 🟢 Verde | Pouco Urgente | 1 (menor) |
+| Vermelho | Emergência | Maior |
+| Amarelo | Urgente | Média |
+| Verde | Pouco urgente | Menor |
 
-> Nenhum paciente de cor inferior pode ser chamado se houver um paciente de cor superior aguardando.
-
----
-
-### [RN-02] Prioridade para Idosos com 60 anos ou mais
-
-Dentro de uma mesma cor, pacientes com idade igual ou superior a 60 anos possuem prioridade sobre os não-idosos. A chave de ordenação é uma tupla de três critérios avaliados com `reverse=True`:
-
-```python
-def chave_ordenacao(paciente):
-    peso      = pesos[paciente["prioridade"]]          # 1º: peso da cor
-    idoso     = 1 if paciente["idade"] >= 60 else 0    # 2º: é idoso?
-    timestamp = paciente["timestamp"]                   # 3º: hora de chegada
-    return (peso, idoso, -timestamp)                    # -timestamp = quem chegou antes vem primeiro
-```
-
-**Critério de desempate:** se dois pacientes tiverem o mesmo peso e mesma categoria de idade, o que chegou **primeiro** (menor `timestamp` → maior `-timestamp`) é chamado antes.
+> Nenhum paciente de cor mais baixa pode ser chamado enquanto houver alguém de cor mais alta esperando.
 
 ---
 
-### [RN-03] Tempos Máximos para Disparo de Alerta
+### [RN-02] Idosos têm prioridade dentro da mesma cor
 
-O gatilho para o pop-up de alerta definido no [RF-04] segue as métricas abaixo. O tempo é calculado em minutos a partir do `timestamp` de chegada do paciente:
+Dentro de uma mesma cor, pacientes com **60 anos ou mais** são chamados antes dos mais novos. Se houver empate (dois idosos ou dois não-idosos na mesma cor), quem chegou **primeiro** é chamado antes.
 
-| Cor | Tempo Máximo em Fila | Comportamento |
+---
+
+### [RN-03] Tempo máximo de espera por cor
+
+Quando um paciente espera mais do que o limite da sua cor, o sistema mostra um alerta automático:
+
+| Cor | Tempo máximo | O que acontece |
 |---|---|---|
-| 🔴 Vermelho | 0 minutos | Alerta imediato ao cadastrar |
-| 🟡 Amarelo | 30 minutos | Pop-up após 30 min na fila |
-| 🟢 Verde | 120 minutos | Pop-up após 120 min na fila |
+| Vermelho | 0 minutos | Alerta assim que é cadastrado |
+| Amarelo | 30 minutos | Alerta após 30 min na fila |
+| Verde | 120 minutos | Alerta após 120 min na fila |
 
-O alerta é verificado via `checar_alertas()` a cada retorno ao menu principal. Cada alerta é disparado no máximo **uma vez por paciente**; ao alterar a prioridade via [RF-05], o `alerta_disparado` é resetado para contemplar os novos limites de tempo da cor atualizada.
+O alerta aparece só uma vez por paciente. Se a cor dele for alterada no cadastro, o alerta é resetado e começa a contar de novo com base na nova cor.
