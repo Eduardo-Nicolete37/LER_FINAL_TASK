@@ -187,7 +187,7 @@ A ordenação primária da fila deve ser baseada estritamente no grau de risco d
 
 ---
 
-### [RN-02] Prioridade para Idosos (≥ 60 Anos)
+### [RN-02] Prioridade para Idosos com 60 anos ou mais
 
 Dentro de uma mesma cor, pacientes com idade igual ou superior a 60 anos possuem prioridade sobre os não-idosos. A chave de ordenação é uma tupla de três critérios avaliados com `reverse=True`:
 
