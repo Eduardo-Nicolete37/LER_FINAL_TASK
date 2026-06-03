@@ -93,7 +93,6 @@ def chamar_proximo():
         print("║                                      ║")
         print("╚══════════════════════════════════════╝")
         msvcrt.getch()
-        return
 
     ordenado = sorted(itens, key=chave_ordenacao, reverse=True)
     proximo = ordenado[0]
