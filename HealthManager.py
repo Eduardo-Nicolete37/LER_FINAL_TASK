@@ -48,7 +48,8 @@ def main(itens):
     print("║  1. Lista de Atendimento             ║")
     print("║  2. Nova Triagem                     ║")
     print("║  3. Chamar Próximo Paciente          ║")
-    print("║  4. Finalizar dia                    ║")
+    print("║  4. Atualizar Registro               ║")
+    print("║  5. Finalizar dia                    ║")
     print("║                                      ║")
     print("╚══════════════════════════════════════╝")
     print("")
@@ -125,6 +126,89 @@ def chamar_proximo():
     print("║  Aperte qualquer tecla para voltar!  ║")
     print("╚══════════════════════════════════════╝")
     msvcrt.getch()
+
+def atualizar_registro():
+    if len(itens) == 0:
+        os.system('cls')
+        print("╔══════════════════════════════════════╗")
+        print("║                                      ║")
+        print("║  Nenhuma pessoa na fila atualmente!  ║")
+        print("║  Aperte qualquer tecla para voltar!  ║")
+        print("║                                      ║")
+        print("╚══════════════════════════════════════╝")
+        msvcrt.getch()
+        return
+
+    os.system('cls')
+    print("╔══════════════════════════════════════╗")
+    print("║         Atualizar Registro           ║")
+    print("╠══════════════════════════════════════╣")
+    nome_busca = input("║  Nome do paciente: ").strip().lower()
+
+    paciente = next((p for p in itens if p["nome"].lower() == nome_busca), None)
+
+    if paciente is None:
+        print("║                                      ║")
+        print("║  Paciente não encontrado!            ║")
+        print("║  Aperte qualquer tecla para voltar!  ║")
+        print("╚══════════════════════════════════════╝")
+        msvcrt.getch()
+        return
+
+    os.system('cls')
+    print("╔══════════════════════════════════════╗")
+    print("║         Atualizar Registro           ║")
+    print("╠══════════════════════════════════════╣")
+    print(f"║  Paciente encontrado: {paciente['nome']:<15}║")
+    print("║                                      ║")
+    print("║  O que deseja editar?                ║")
+    print("║  1. Nome                             ║")
+    print("║  2. Idade                            ║")
+    print("║  3. Prioridade                       ║")
+    print("║                                      ║")
+    print("╚══════════════════════════════════════╝")
+
+    try:
+        campo = int(input("Digite uma alternativa: "))
+    except ValueError:
+        campo = -1
+
+    if campo == 1:
+        novo_nome = input("║  Novo nome: ").strip()
+        if novo_nome:
+            paciente["nome"] = novo_nome
+
+    elif campo == 2:
+        while True:
+            try:
+                nova_idade = int(input("║  Nova idade: "))
+                if nova_idade < 0:
+                    print("║  Idade inválida! Digite um valor positivo.")
+                    continue
+                paciente["idade"] = nova_idade
+                break
+            except ValueError:
+                print("║  Digite apenas números!")
+
+    elif campo == 3:
+        print("║  1. Vermelho  2. Amarelo  3. Verde   ║")
+        try:
+            opcao = int(input("║  Nova prioridade: "))
+        except ValueError:
+            opcao = -1
+        prioridades = {1: "vermelho", 2: "amarelo", 3: "verde"}
+        nova_prioridade = prioridades.get(opcao, None)
+        if nova_prioridade:
+            paciente["prioridade"] = nova_prioridade
+            paciente["alerta_disparado"] = False  # reseta o alerta com a nova prioridade
+
+    os.system('cls')
+    print("╔══════════════════════════════════════╗")
+    print("║  Registro atualizado com sucesso!    ║")
+    print("║  Aperte qualquer tecla para voltar!  ║")
+    print("╚══════════════════════════════════════╝")
+    msvcrt.getch()
+    return
 
 def finalizar_dia():
     os.system('cls')
@@ -210,7 +294,8 @@ while True:
 
     elif option_choose == 3:
         chamar_proximo()
-
     elif option_choose == 4:
+        atualizar_registro()
+    elif option_choose == 5:
         finalizar_dia()
         break
