@@ -29,8 +29,8 @@ def checar_alertas():
             print("║         ⚠ ALERTA DE TEMPO ⚠          ║")
             print("╠══════════════════════════════════════╣")
             print(f"║  Nome:      {paciente['nome']:<25}║")
-            print(f"║  Prioridade:{paciente['prioridade']:<25}║")
-            print(f"║  Tempo esp: {tempo_espera:.1f} min{'':<20}║")
+            print(f"║  Prioridade: {paciente['prioridade']:<24}║")
+            print(f"║  Tempo esp: {tempo_espera:.1f} min{'':<18}║")
             print("║                                      ║")
             print("║  Aperte qualquer tecla para fechar!  ║")
             print("╚══════════════════════════════════════╝")
@@ -64,8 +64,16 @@ def nova_triagem():
     print("║             Nova Triagem             ║")
     print("╠══════════════════════════════════════╣")
     print("║                                      ║")
-    nome = input("║  Nome:      ")
-    idade = input("║  Idade:     ")
+    nome = str(input("║  Nome:      "))
+    while True:
+        try:
+            idade = int(input("║  Idade:     "))
+            if idade < 0:
+                print("║  Idade inválida! Digite um valor positivo.")
+                continue
+            break
+        except ValueError:
+            print("║  Digite apenas números!")
     print("║                                      ║")
     print("║  Prioridade:                         ║")
     print("║  1. Vermelho                         ║")
@@ -93,9 +101,11 @@ def chamar_proximo():
         print("║                                      ║")
         print("╚══════════════════════════════════════╝")
         msvcrt.getch()
+        return
 
     ordenado = sorted(itens, key=chave_ordenacao, reverse=True)
-    proximo = ordenado[0]
+    if len(ordenado) >= 1:
+        proximo = ordenado[0]
     proximo["timestamp_atendimento"] = time.time()
     proximo["horario_atendimento"] = datetime.now().strftime("%H:%M:%S")
     proximo["status"] = "Em Atendimento"
@@ -119,7 +129,8 @@ def chamar_proximo():
 def finalizar_dia():
     os.system('cls')
     agora = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    nome_arquivo = f"historico_{agora}.txt"
+    os.makedirs("registros", exist_ok=True)
+    nome_arquivo = f"registros/historico_{agora}.txt"
 
     with open(nome_arquivo, "w", encoding="utf-8") as f:
         f.write("========================================\n")
