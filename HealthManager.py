@@ -10,12 +10,39 @@ itens = []
 em_atendimento = []
 
 def chave_ordenacao(paciente):
+    """
+    Gera a chave de ordenação de um paciente para a fila de triagem.
+
+    Segue o Protocolo de Manchester:
+    - Prioridade mais alta (vermelho > amarelo > verde) vem primeiro.
+    - Em caso de empate, pacientes idosos (>= 60 anos) têm preferência.
+    - Em caso de empate total, quem chegou antes é atendido antes.
+
+    Args:
+        paciente (dict): Dicionário com os dados do paciente,
+                         incluindo 'prioridade', 'idade' e 'timestamp'.
+
+    Returns:
+        tuple: Tupla (peso, idoso, -timestamp) usada pelo sorted().
+    """
     peso = pesos[paciente["prioridade"]]
     idoso = 1 if paciente["idade"] >= 60 else 0
     timestamp = paciente["timestamp"]
     return (peso, idoso, -timestamp)
 
 def checar_alertas():
+    """
+    Verifica se algum paciente na fila ultrapassou o tempo máximo de espera.
+
+    Percorre a lista de pacientes aguardando e, para cada um, calcula
+    o tempo decorrido desde a chegada. Se o tempo ultrapassar o limite
+    definido para a prioridade (vermelho: 0 min, amarelo: 30 min,
+    verde: 120 min), exibe um alerta visual no terminal e aguarda
+    confirmação do usuário antes de prosseguir.
+
+    O campo 'alerta_disparado' evita que o mesmo alerta seja exibido
+    mais de uma vez para o mesmo paciente.
+    """
     agora = time.time()
     for paciente in itens:
         if paciente.get("alerta_disparado"):
@@ -37,6 +64,21 @@ def checar_alertas():
             msvcrt.getch()
 
 def main(itens):
+    """
+    Exibe o menu principal e captura a escolha do usuário.
+
+    Antes de renderizar o menu, chama checar_alertas() para verificar
+    se há pacientes com tempo de espera excedido. Em seguida, limpa
+    o terminal e exibe as opções disponíveis.
+
+    Args:
+        itens (list): Lista atual de pacientes na fila de espera.
+
+    Returns:
+        tuple: (option_choose, itens), onde option_choose é um inteiro
+               correspondente à opção selecionada, ou -1 em caso de
+               entrada inválida.
+    """
     checar_alertas()
     os.system('cls')
     print("╔══════════════════════════════════════╗")
@@ -60,6 +102,22 @@ def main(itens):
     return option_choose, itens
 
 def nova_triagem():
+    """
+    Coleta os dados de um novo paciente para entrada na fila de triagem.
+
+    Solicita ao operador o nome, idade e nível de prioridade do paciente.
+    A idade é validada em loop até que um valor inteiro positivo seja
+    informado. A prioridade é mapeada de um número (1, 2 ou 3) para
+    a cor correspondente do Protocolo de Manchester.
+
+    Returns:
+        tuple: (nome, idade, prioridade), onde:
+            - nome (str): Nome do paciente.
+            - idade (int): Idade do paciente.
+            - prioridade (str | None): 'vermelho', 'amarelo', 'verde',
+              ou None se a opção digitada for inválida.
+
+    """
     os.system('cls')
     print("╔══════════════════════════════════════╗")
     print("║             Nova Triagem             ║")
@@ -93,6 +151,17 @@ def nova_triagem():
     return nome, int(idade), prioridade
 
 def chamar_proximo():
+    """
+    Chama o próximo paciente da fila de acordo com a ordenação de triagem.
+
+    Ordena a lista de espera usando chave_ordenacao() e move o paciente
+    de maior prioridade para a lista 'em_atendimento'. Registra o
+    horário e timestamp de início do atendimento e exibe as informações
+    do paciente no terminal.
+
+    Caso a fila esteja vazia, exibe uma mensagem informativa e retorna
+    sem realizar nenhuma ação.
+    """
     if len(itens) == 0:
         os.system('cls')
         print("╔══════════════════════════════════════╗")
@@ -128,6 +197,19 @@ def chamar_proximo():
     msvcrt.getch()
 
 def atualizar_registro():
+    """
+    Permite editar os dados de um paciente que está na fila de espera.
+
+    Busca o paciente pelo nome (sem distinção de maiúsculas/minúsculas)
+    e oferece as opções de edição: nome, idade ou prioridade. A idade
+    é revalidada em loop. Ao alterar a prioridade, o campo
+    'alerta_disparado' é resetado para que o novo limite de tempo
+    seja monitorado corretamente.
+
+    Caso a fila esteja vazia ou o paciente não seja encontrado,
+    exibe uma mensagem informativa e retorna sem realizar alterações.
+    """
+    
     if len(itens) == 0:
         os.system('cls')
         print("╔══════════════════════════════════════╗")
@@ -211,6 +293,20 @@ def atualizar_registro():
     return
 
 def finalizar_dia():
+    """
+    Encerra o turno e gera um relatório em arquivo .txt com o histórico
+    de todos os pacientes atendidos e não atendidos no dia.
+
+    Cria o diretório 'registros/' caso não exista e salva o arquivo com
+    o nome no formato 'historico_AAAA-MM-DD_HH-MM-SS.txt'. Para cada
+    paciente, registra nome, cor de triagem, horário de chegada,
+    horário de atendimento e tempo de espera calculado. Pacientes que
+    não foram chamados recebem 'Não atendido' e 'N/A' nos campos
+    correspondentes.
+
+    Ao final, exibe o caminho do arquivo salvo e aguarda confirmação
+    do usuário antes de encerrar o programa.
+    """
     os.system('cls')
     agora = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     os.makedirs("registros", exist_ok=True)
