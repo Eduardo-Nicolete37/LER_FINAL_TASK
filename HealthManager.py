@@ -245,7 +245,7 @@ def finalizar_dia():
                 f.write("----------------------------------------\n")
 
     print("╔══════════════════════════════════════╗")
-    print(f"║  Arquivo salvo:                      ║")
+    print("║  Arquivo salvo:                      ║")
     print(f"║  {nome_arquivo:<36}║")
     print("║  Aperte qualquer tecla para sair!    ║")
     print("╚══════════════════════════════════════╝")
