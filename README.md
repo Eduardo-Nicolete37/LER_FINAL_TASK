@@ -9,6 +9,7 @@
 |---|---|---|---|
 | 1.0 | 29/05/2025 | Versão inicial | Eduardo e Letícia |
 | 1.1 | 03/06/2025 | Adicionado RF-05, detalhamento das regras de negócio e tempos de alerta | Eduardo e Letícia |
+| 1.2 | 12/06/2025 | Adicionado campo sobrenome (RF-01, RF-05), desambiguação por sobrenome, validação de duplicata e nova regra RN-04 | Eduardo e Letícia |
 
 ---
 
@@ -56,15 +57,17 @@ Os requisitos foram escritos no formato de **histórias de usuário**, que é um
 
 #### [RF-01] Cadastrar paciente
 
-> **História:** Como *enfermeira da triagem*, quero cadastrar o paciente com nome, idade, cor de risco e horário de chegada, para registrar as informações dele logo na entrada.
+> **História:** Como *enfermeira da triagem*, quero cadastrar o paciente com nome, sobrenome, idade, cor de risco e horário de chegada, para registrar as informações dele logo na entrada.
 
 **O sistema deve:**
 
 - Salvar automaticamente o horário exato em que o cadastro foi feito
 - Aceitar só as cores **Vermelho**, **Amarelo** ou **Verde**
-- Validar a idade (só números positivos; se digitar errado, pede de novo)
+- Coletar nome e sobrenome separadamente para permitir desambiguação quando dois pacientes tiverem o mesmo nome
+- Validar a idade (só números positivos; se digitar errado, pede de novo — ver RN-04)
 - Começar o status do paciente como "Em Espera"
 - Não cadastrar o paciente se a cor de risco for inválida
+- Verificar se já existe um paciente com o mesmo nome e sobrenome na fila; se houver duplicata, exibir aviso e cancelar o cadastro
 
 **Prioridade:** `Alta`
 
@@ -77,7 +80,7 @@ Os requisitos foram escritos no formato de **histórias de usuário**, que é um
 **O sistema deve:**
 
 - Mostrar a fila já ordenada seguindo as regras de prioridade
-- Exibir nome, idade, cor e horário de chegada de cada paciente
+- Exibir nome completo (nome + sobrenome), idade, cor e horário de chegada de cada paciente
 - Se não tiver ninguém na fila, mostrar uma mensagem avisando
 
 **Prioridade:** `Alta`
@@ -93,6 +96,7 @@ Os requisitos foram escritos no formato de **histórias de usuário**, que é um
 - Registrar o horário em que o atendimento começou
 - Tirar o paciente da fila e mover ele para "Em Atendimento"
 - Escolher o próximo paciente seguindo as regras de prioridade (cor, idoso, chegada)
+- Exibir nome completo (nome + sobrenome), idade, cor, horário de chegada e horário de início do atendimento
 - Se a fila estiver vazia, mostrar uma mensagem avisando
 
 **Prioridade:** `Alta`
@@ -121,7 +125,8 @@ Os requisitos foram escritos no formato de **histórias de usuário**, que é um
 **O sistema deve:**
 
 - Buscar o paciente pelo nome (sem diferenciar maiúscula de minúscula)
-- Permitir editar: nome, idade ou cor de risco
+- Se houver mais de um paciente com o mesmo nome, solicitar o sobrenome para desambiguação antes de prosseguir
+- Permitir editar: nome, sobrenome, idade ou cor de risco
 - Se a cor for alterada, resetar o alerta para contar o tempo do zero com a nova cor
 - Se o paciente não for encontrado, mostrar mensagem de erro
 - Validar os dados da mesma forma que no cadastro
@@ -137,7 +142,7 @@ Os requisitos foram escritos no formato de **histórias de usuário**, que é um
 **O sistema deve:**
 
 - Salvar o arquivo na pasta `registros/` com o nome no formato `historico_AAAA-MM-DD_HH-MM-SS.txt`
-- Incluir para cada paciente: nome, cor de triagem, horário de chegada, horário de atendimento e tempo de espera
+- Incluir para cada paciente: nome completo (nome + sobrenome), cor de triagem, horário de chegada, horário de atendimento e tempo de espera
 - Para pacientes que não foram atendidos, registrar como "Não atendido" e "N/A"
 - Colocar no topo do arquivo a data e hora em que foi gerado
 - Encerrar o programa depois de salvar
@@ -212,3 +217,12 @@ Quando um paciente espera mais do que o limite da sua cor, o sistema mostra um a
 | Verde | 120 minutos | Alerta após 120 min na fila |
 
 O alerta aparece só uma vez por paciente. Se a cor dele for alterada no cadastro, o alerta é resetado e começa a contar de novo com base na nova cor.
+
+---
+
+### [RN-04] Validação de idade
+
+O sistema nunca aceita uma idade inválida. As seguintes situações são tratadas:
+
+- **Valor não-numérico** (letras, símbolos).
+- **Valor negativo** (ex.: -5).
