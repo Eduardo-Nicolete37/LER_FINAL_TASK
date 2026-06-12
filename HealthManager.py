@@ -30,6 +30,7 @@ def chave_ordenacao(paciente):
     timestamp = paciente["timestamp"]
     return (peso, idoso, -timestamp)
 
+
 def checar_alertas():
     """
     Verifica se algum paciente na fila ultrapassou o tempo máximo de espera.
@@ -62,6 +63,7 @@ def checar_alertas():
             print("║  Aperte qualquer tecla para fechar!  ║")
             print("╚══════════════════════════════════════╝")
             msvcrt.getch()
+
 
 def main(itens):
     """
@@ -101,29 +103,44 @@ def main(itens):
         option_choose = -1
     return option_choose, itens
 
+
 def nova_triagem():
     """
     Coleta os dados de um novo paciente para entrada na fila de triagem.
 
-    Solicita ao operador o nome, idade e nível de prioridade do paciente.
-    A idade é validada em loop até que um valor inteiro positivo seja
-    informado. A prioridade é mapeada de um número (1, 2 ou 3) para
-    a cor correspondente do Protocolo de Manchester.
+    Solicita ao operador o nome, sobrenome, idade e nível de prioridade
+    do paciente. A idade é validada em loop até que um valor inteiro
+    positivo seja informado. A prioridade é mapeada de um número
+    (1, 2 ou 3) para a cor correspondente do Protocolo de Manchester.
+
+    O sobrenome é armazenado separadamente para permitir desambiguação
+    em casos onde dois pacientes possuam o mesmo nome.
 
     Returns:
-        tuple: (nome, idade, prioridade), onde:
-            - nome (str): Nome do paciente.
+        tuple: (nome, sobrenome, idade, prioridade), onde:
+            - nome (str): Primeiro nome do paciente.
+            - sobrenome (str): Sobrenome do paciente.
             - idade (int): Idade do paciente.
             - prioridade (str | None): 'vermelho', 'amarelo', 'verde',
               ou None se a opção digitada for inválida.
-
     """
     os.system('cls')
     print("╔══════════════════════════════════════╗")
     print("║             Nova Triagem             ║")
     print("╠══════════════════════════════════════╣")
     print("║                                      ║")
-    nome = str(input("║  Nome:      "))
+    while True:
+        nome = str(input("║  Nome:      "))
+        if len(nome) == 0:
+            print("║ Nome inválido! Tente novamente!")
+        else:
+            break
+    while True:
+        sobrenome = str(input("║  Sobrenome: "))
+        if len(sobrenome) == 0:
+            print("║ Sobrenome inválido! Tente novamente!")
+        else:
+            break
     while True:
         try:
             idade = int(input("║  Idade:     "))
@@ -148,7 +165,8 @@ def nova_triagem():
     prioridades = {1: "vermelho", 2: "amarelo", 3: "verde"}
     prioridade = prioridades.get(opcao, None)
 
-    return nome, int(idade), prioridade
+    return nome, sobrenome, int(idade), prioridade
+
 
 def chamar_proximo():
     """
@@ -157,7 +175,7 @@ def chamar_proximo():
     Ordena a lista de espera usando chave_ordenacao() e move o paciente
     de maior prioridade para a lista 'em_atendimento'. Registra o
     horário e timestamp de início do atendimento e exibe as informações
-    do paciente no terminal.
+    do paciente no terminal, incluindo nome e sobrenome.
 
     Caso a fila esteja vazia, exibe uma mensagem informativa e retorna
     sem realizar nenhuma ação.
@@ -182,11 +200,12 @@ def chamar_proximo():
     itens.remove(proximo)
     em_atendimento.append(proximo)
 
+    nome_completo = f"{proximo['nome']} {proximo['sobrenome']}"
     os.system('cls')
     print("╔══════════════════════════════════════╗")
     print("║         Próximo Paciente             ║")
     print("╠══════════════════════════════════════╣")
-    print(f"║  Nome:      {proximo['nome']:<25}║")
+    print(f"║  Nome:      {nome_completo:<25}║")
     print(f"║  Idade:     {proximo['idade']:<25}║")
     print(f"║  Prioridade:{proximo['prioridade']:<25}║")
     print(f"║  Chegada:   {proximo['horario_chegada']:<25}║")
@@ -196,20 +215,25 @@ def chamar_proximo():
     print("╚══════════════════════════════════════╝")
     msvcrt.getch()
 
+
 def atualizar_registro():
     """
     Permite editar os dados de um paciente que está na fila de espera.
 
-    Busca o paciente pelo nome (sem distinção de maiúsculas/minúsculas)
-    e oferece as opções de edição: nome, idade ou prioridade. A idade
-    é revalidada em loop. Ao alterar a prioridade, o campo
+    Busca pelo nome (sem distinção de maiúsculas/minúsculas) e coleta
+    todos os pacientes que correspondam. Se houver mais de um com o
+    mesmo nome, solicita o sobrenome para desambiguação antes de
+    prosseguir. As opções de edição são: nome, sobrenome, idade ou
+    prioridade.
+
+    A idade é revalidada em loop. Ao alterar a prioridade, o campo
     'alerta_disparado' é resetado para que o novo limite de tempo
-    seja monitorado corretamente.
+    seja monitorado corretamente. O .get("sobrenome", "") garante
+    compatibilidade com registros cadastrados sem sobrenome.
 
     Caso a fila esteja vazia ou o paciente não seja encontrado,
     exibe uma mensagem informativa e retorna sem realizar alterações.
     """
-    
     if len(itens) == 0:
         os.system('cls')
         print("╔══════════════════════════════════════╗")
@@ -226,16 +250,29 @@ def atualizar_registro():
     print("║         Atualizar Registro           ║")
     print("╠══════════════════════════════════════╣")
     nome_busca = input("║  Nome do paciente: ").strip().lower()
+    matches = [p for p in itens if p["nome"].lower() == nome_busca]
 
-    paciente = next((p for p in itens if p["nome"].lower() == nome_busca), None)
-
-    if paciente is None:
+    if not matches:
         print("║                                      ║")
         print("║  Paciente não encontrado!            ║")
         print("║  Aperte qualquer tecla para voltar!  ║")
         print("╚══════════════════════════════════════╝")
         msvcrt.getch()
         return
+
+    if len(matches) > 1:
+        sobrenome_busca = input("║  Há mais de um paciente com esse nome.\n║  Digite o sobrenome: ").strip().lower()
+        matches = [p for p in matches if p.get("sobrenome", "").lower() == sobrenome_busca]
+
+        if not matches:
+            print("║                                      ║")
+            print("║  Sobrenome não encontrado!           ║")
+            print("║  Aperte qualquer tecla para voltar!  ║")
+            print("╚══════════════════════════════════════╝")
+            msvcrt.getch()
+            return
+
+    paciente = matches[0]
 
     os.system('cls')
     print("╔══════════════════════════════════════╗")
@@ -245,8 +282,9 @@ def atualizar_registro():
     print("║                                      ║")
     print("║  O que deseja editar?                ║")
     print("║  1. Nome                             ║")
-    print("║  2. Idade                            ║")
-    print("║  3. Prioridade                       ║")
+    print("║  2. Sobrenome                        ║")
+    print("║  3. Idade                            ║")
+    print("║  4. Prioridade                       ║")
     print("║                                      ║")
     print("╚══════════════════════════════════════╝")
 
@@ -261,6 +299,11 @@ def atualizar_registro():
             paciente["nome"] = novo_nome
 
     elif campo == 2:
+        novo_sobrenome = input("║  Novo sobrenome: ").strip()
+        if novo_sobrenome:
+            paciente["sobrenome"] = novo_sobrenome
+
+    elif campo == 3:
         while True:
             try:
                 nova_idade = int(input("║  Nova idade: "))
@@ -272,7 +315,7 @@ def atualizar_registro():
             except ValueError:
                 print("║  Digite apenas números!")
 
-    elif campo == 3:
+    elif campo == 4:
         print("║  1. Vermelho  2. Amarelo  3. Verde   ║")
         try:
             opcao = int(input("║  Nova prioridade: "))
@@ -282,7 +325,7 @@ def atualizar_registro():
         nova_prioridade = prioridades.get(opcao, None)
         if nova_prioridade:
             paciente["prioridade"] = nova_prioridade
-            paciente["alerta_disparado"] = False  # reseta o alerta com a nova prioridade
+            paciente["alerta_disparado"] = False
 
     os.system('cls')
     print("╔══════════════════════════════════════╗")
@@ -292,6 +335,7 @@ def atualizar_registro():
     msvcrt.getch()
     return
 
+
 def finalizar_dia():
     """
     Encerra o turno e gera um relatório em arquivo .txt com o histórico
@@ -299,10 +343,10 @@ def finalizar_dia():
 
     Cria o diretório 'registros/' caso não exista e salva o arquivo com
     o nome no formato 'historico_AAAA-MM-DD_HH-MM-SS.txt'. Para cada
-    paciente, registra nome, cor de triagem, horário de chegada,
-    horário de atendimento e tempo de espera calculado. Pacientes que
-    não foram chamados recebem 'Não atendido' e 'N/A' nos campos
-    correspondentes.
+    paciente, registra nome completo (nome + sobrenome), cor de triagem,
+    horário de chegada, horário de atendimento e tempo de espera
+    calculado. Pacientes que não foram chamados recebem 'Não atendido'
+    e 'N/A' nos campos correspondentes.
 
     Ao final, exibe o caminho do arquivo salvo e aguarda confirmação
     do usuário antes de encerrar o programa.
@@ -323,6 +367,7 @@ def finalizar_dia():
             f.write("Nenhum paciente registrado hoje.\n")
         else:
             for p in todos:
+                nome_completo = f"{p['nome']} {p.get('sobrenome', '')}".strip()
                 if "timestamp_atendimento" in p:
                     espera_segundos = int(p["timestamp_atendimento"] - p["timestamp"])
                     espera_min = espera_segundos // 60
@@ -333,7 +378,7 @@ def finalizar_dia():
                     atendimento = "Não atendido"
                     espera_str = "N/A"
 
-                f.write(f"Nome:               {p['nome']}\n")
+                f.write(f"Nome:               {nome_completo}\n")
                 f.write(f"Cor de triagem:     {p['prioridade']}\n")
                 f.write(f"Horário de chegada: {p['horario_chegada']}\n")
                 f.write(f"Horário atendimento:{atendimento}\n")
@@ -346,6 +391,7 @@ def finalizar_dia():
     print("║  Aperte qualquer tecla para sair!    ║")
     print("╚══════════════════════════════════════╝")
     msvcrt.getch()
+
 
 while True:
     option_choose, itens = main(itens)
@@ -367,7 +413,8 @@ while True:
             print("║          Lista de Atendimento        ║")
             print("╠══════════════════════════════════════╣")
             for paciente in ordenado:
-                print(f"║  Nome:      {paciente['nome']:<25}║")
+                nome_completo = f"{paciente['nome']} {paciente.get('sobrenome', '')}".strip()
+                print(f"║  Nome:      {nome_completo:<25}║")
                 print(f"║  Idade:     {paciente['idade']:<25}║")
                 print(f"║  Prioridade:{paciente['prioridade']:<25}║")
                 print(f"║  Chegada:   {paciente['horario_chegada']:<25}║")
@@ -376,17 +423,32 @@ while True:
             msvcrt.getch()
 
     elif option_choose == 2:
-        nome, idade, prioridade = nova_triagem()
+        nome, sobrenome, idade, prioridade = nova_triagem()
         if prioridade is not None:
-            itens.append({
-                "nome": nome,
-                "idade": idade,
-                "prioridade": prioridade,
-                "timestamp": time.time(),
-                "horario_chegada": datetime.now().strftime("%H:%M:%S"),
-                "status": "Em Espera",
-                "alerta_disparado": False
-            })
+            duplicado = any(
+                p["nome"].lower() == nome.lower() and
+                p.get("sobrenome", "").lower() == sobrenome.lower()
+                for p in itens
+            )
+            if duplicado:
+                os.system('cls')
+                print("╔══════════════════════════════════════╗")
+                print("║  Paciente já cadastrado na fila!     ║")
+                print("║  Aperte qualquer tecla para voltar!  ║")
+                print("╚══════════════════════════════════════╝")
+                msvcrt.getch()
+            else:
+                itens.append({
+                    "nome": nome,
+                    "sobrenome": sobrenome,
+                    "idade": idade,
+                    "prioridade": prioridade,
+                    "timestamp": time.time(),
+                    "horario_chegada": datetime.now().strftime("%H:%M:%S"),
+                    "status": "Em Espera",
+                    "alerta_disparado": False
+                })
+                
 
     elif option_choose == 3:
         chamar_proximo()
