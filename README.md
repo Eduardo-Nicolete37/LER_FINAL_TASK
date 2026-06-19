@@ -228,4 +228,4 @@ O sistema nunca aceita uma idade inválida. As seguintes situações são tratad
 
 - **Valor não-numérico** (letras, símbolos).
 - **Valor negativo** (ex.: -5).
-- **Valores inreais** (ex.: 200).
+- **Valores ireais** (ex.: 200).
