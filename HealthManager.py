@@ -147,6 +147,9 @@ def nova_triagem():
             if idade < 0:
                 print("║  Idade inválida! Digite um valor positivo.")
                 continue
+            elif idade > 150:
+                print("║  Idade inválida! Digite um valor válido.")
+                continue
             break
         except ValueError:
             print("║  Digite apenas números!")
