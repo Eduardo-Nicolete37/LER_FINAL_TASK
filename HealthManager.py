@@ -52,7 +52,7 @@ def checar_alertas():
         limite = tempos_maximos[paciente["prioridade"]]
         if tempo_espera >= limite:
             paciente["alerta_disparado"] = True
-            os.system('cls')
+            os.system('cls' if os.name == 'nt' else 'clear')
             print("╔══════════════════════════════════════╗")
             print("║         ⚠ ALERTA DE TEMPO ⚠          ║")
             print("╠══════════════════════════════════════╣")
@@ -82,7 +82,7 @@ def main(itens):
                entrada inválida.
     """
     checar_alertas()
-    os.system('cls')
+    os.system('cls' if os.name == 'nt' else 'clear')
     print("╔══════════════════════════════════════╗")
     print("║             HealthManager            ║")
     print("╠══════════════════════════════════════╣")
@@ -124,7 +124,7 @@ def nova_triagem():
             - prioridade (str | None): 'vermelho', 'amarelo', 'verde',
               ou None se a opção digitada for inválida.
     """
-    os.system('cls')
+    os.system('cls' if os.name == 'nt' else 'clear')
     print("╔══════════════════════════════════════╗")
     print("║             Nova Triagem             ║")
     print("╠══════════════════════════════════════╣")
@@ -181,7 +181,7 @@ def chamar_proximo():
     sem realizar nenhuma ação.
     """
     if len(itens) == 0:
-        os.system('cls')
+        os.system('cls' if os.name == 'nt' else 'clear')
         print("╔══════════════════════════════════════╗")
         print("║                                      ║")
         print("║  Nenhuma pessoa na fila atualmente!  ║")
@@ -201,7 +201,7 @@ def chamar_proximo():
     em_atendimento.append(proximo)
 
     nome_completo = f"{proximo['nome']} {proximo['sobrenome']}"
-    os.system('cls')
+    os.system('cls' if os.name == 'nt' else 'clear')
     print("╔══════════════════════════════════════╗")
     print("║         Próximo Paciente             ║")
     print("╠══════════════════════════════════════╣")
@@ -235,7 +235,7 @@ def atualizar_registro():
     exibe uma mensagem informativa e retorna sem realizar alterações.
     """
     if len(itens) == 0:
-        os.system('cls')
+        os.system('cls' if os.name == 'nt' else 'clear')
         print("╔══════════════════════════════════════╗")
         print("║                                      ║")
         print("║  Nenhuma pessoa na fila atualmente!  ║")
@@ -245,7 +245,7 @@ def atualizar_registro():
         msvcrt.getch()
         return
 
-    os.system('cls')
+    os.system('cls' if os.name == 'nt' else 'clear')
     print("╔══════════════════════════════════════╗")
     print("║         Atualizar Registro           ║")
     print("╠══════════════════════════════════════╣")
@@ -274,7 +274,7 @@ def atualizar_registro():
 
     paciente = matches[0]
 
-    os.system('cls')
+    os.system('cls' if os.name == 'nt' else 'clear')
     print("╔══════════════════════════════════════╗")
     print("║         Atualizar Registro           ║")
     print("╠══════════════════════════════════════╣")
@@ -327,7 +327,7 @@ def atualizar_registro():
             paciente["prioridade"] = nova_prioridade
             paciente["alerta_disparado"] = False
 
-    os.system('cls')
+    os.system('cls' if os.name == 'nt' else 'clear')
     print("╔══════════════════════════════════════╗")
     print("║  Registro atualizado com sucesso!    ║")
     print("║  Aperte qualquer tecla para voltar!  ║")
@@ -351,7 +351,7 @@ def finalizar_dia():
     Ao final, exibe o caminho do arquivo salvo e aguarda confirmação
     do usuário antes de encerrar o programa.
     """
-    os.system('cls')
+    os.system('cls' if os.name == 'nt' else 'clear')
     agora = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     os.makedirs("registros", exist_ok=True)
     nome_arquivo = f"registros/historico_{agora}.txt"
@@ -398,7 +398,7 @@ while True:
 
     if option_choose == 1:
         if len(itens) == 0:
-            os.system('cls')
+            os.system('cls' if os.name == 'nt' else 'clear')
             print("╔══════════════════════════════════════╗")
             print("║                                      ║")
             print("║  Nenhuma pessoa na fila atualmente!  ║")
@@ -407,7 +407,7 @@ while True:
             print("╚══════════════════════════════════════╝")
             msvcrt.getch()
         else:
-            os.system('cls')
+            os.system('cls' if os.name == 'nt' else 'clear')
             ordenado = sorted(itens, key=chave_ordenacao, reverse=True)
             print("╔══════════════════════════════════════╗")
             print("║          Lista de Atendimento        ║")
@@ -431,7 +431,7 @@ while True:
                 for p in itens
             )
             if duplicado:
-                os.system('cls')
+                os.system('cls' if os.name == 'nt' else 'clear')
                 print("╔══════════════════════════════════════╗")
                 print("║  Paciente já cadastrado na fila!     ║")
                 print("║  Aperte qualquer tecla para voltar!  ║")
