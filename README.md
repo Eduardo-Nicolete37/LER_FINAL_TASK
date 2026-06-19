@@ -10,6 +10,8 @@
 | 1.0 | 29/05/2025 | Versão inicial | Eduardo e Letícia |
 | 1.1 | 03/06/2025 | Adicionado RF-05, detalhamento das regras de negócio e tempos de alerta | Eduardo e Letícia |
 | 1.2 | 12/06/2025 | Adicionado campo sobrenome (RF-01, RF-05), desambiguação por sobrenome, validação de duplicata e nova regra RN-04 | Eduardo e Letícia |
+| 1.2.1 | 19/06/2025 | Adicionando compatibilidade ao Linux | Eduardo |
+
 
 ---
 
